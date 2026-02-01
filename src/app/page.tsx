@@ -1,7 +1,7 @@
 'use client';
 
-import PsiuuFinancialDashboard from '@/components/FinancialApp';
+import UinkFinancialDashboard from '@/components/Dashboard';
 
 export default function Home() {
-  return <PsiuuFinancialDashboard />;
+  return <UinkFinancialDashboard />;
 }
