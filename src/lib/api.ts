@@ -27,7 +27,7 @@ class ApiClient {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = this.getToken();
-    
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -294,6 +294,15 @@ class ApiClient {
 
   async getUnitEconomics(period = 'month') {
     return this.request<any>(`/finance/reports/unit-economics?period=${period}`);
+  }
+
+  // Messaging Stats
+  async getSmsStats() {
+    return this.request<any>('/sms/stats');
+  }
+
+  async getWhatsAppStats() {
+    return this.request<any>('/whatsapp/stats');
   }
 }
 
