@@ -633,7 +633,7 @@ const UinkFinancialDashboard: FC = () => {
             case 'vendas': return <VendasScreen vendas={vendas} />;
             case 'influenciadores': return <InfluencersScreen influencers={influencers} />;
             case 'payouts': return <PayoutsScreen payouts={payouts} onProcess={handleProcessPayouts} onOpenReview={(p) => { setSelectedPayout(p); setModal('reviewPayout'); }} onViewExtract={(p) => { setSelectedPayout(p); setModal('viewExtract'); }} />;
-            default: return <div className="text-zinc-500 text-center py-20">Tela "{activeScreen}" em desenvolvimento.</div>;
+            default: return <div className="text-zinc-500 text-center py-20">Tela &quot;{activeScreen}&quot; em desenvolvimento.</div>;
         }
     };
 
