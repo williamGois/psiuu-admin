@@ -518,6 +518,143 @@ const PayoutsScreen: FC<{ payouts: Payout[], onOpenReview: (p: Payout) => void, 
 // MAIN APPLICATION COMPONENT
 // =================================================================================
 
+// TreasuryScreen Component
+const TreasuryScreen: FC<{ bankAccounts: BankAccount[], transactions: TreasuryTransaction[], payables: PayableItem[], cardRecurrences: PayableItem[], onPay: (item: PayableItem) => void, setModal: (t: ModalType) => void }> = ({ bankAccounts, transactions, payables, cardRecurrences, onPay, setModal }) => (
+    <div className="space-y-8">
+        <div className="flex justify-between items-start">
+            <div>
+                <h1 className="text-3xl font-bold text-white">Tesouraria & Liquidez</h1>
+                <p className="text-zinc-500 mt-1">Gestão de contas, pagamentos e conciliação.</p>
+            </div>
+            <div className="flex gap-3">
+                <Button variant="primary" onClick={() => setModal('addTransaction')}>
+                    <Plus className="w-4 h-4 mr-2" /> Nova Movimentação
+                </Button>
+            </div>
+        </div>
+
+        {/* Bank Account Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {bankAccounts.map(account => (
+                <div key={account.id} className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 flex justify-between items-center">
+                    <div>
+                        <p className="text-zinc-400 text-sm font-medium">{account.bankName}</p>
+                        <p className="text-3xl font-bold text-white mt-2">{account.currency} {account.balance.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                        <p className="text-zinc-600 text-xs mt-2">Conta: {account.accountNumber}</p>
+                    </div>
+                    <div className="text-zinc-700">
+                        <Landmark className="w-16 h-16" strokeWidth={1} />
+                    </div>
+                </div>
+            ))}
+        </div>
+
+        {/* Contas a Pagar + Recorrências */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+                <Card>
+                    <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                        <Zap className="w-5 h-5 text-yellow-500" /> Contas a Pagar (Aprovadas)
+                    </h3>
+                    <table className="w-full">
+                        <thead>
+                            <tr className="text-left text-xs font-bold uppercase text-zinc-500 border-b border-zinc-800">
+                                <th className="pb-4">Vencimento</th>
+                                <th className="pb-4">Fornecedor / Descrição</th>
+                                <th className="pb-4 text-right">Valor</th>
+                                <th className="pb-4 text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-800/50">
+                            {payables.map(item => (
+                                <tr key={item.id} className="hover:bg-zinc-800/30">
+                                    <td className="py-4 text-sm text-zinc-400">{formatDate(item.dueDate)}</td>
+                                    <td className="py-4">
+                                        <p className="text-sm font-bold text-white">{item.supplierName}</p>
+                                        <p className="text-xs text-zinc-500">{item.description}</p>
+                                    </td>
+                                    <td className="py-4 text-sm text-right font-bold text-red-400">{formatCurrency(item.amount)}</td>
+                                    <td className="py-4 text-right">
+                                        <button 
+                                            onClick={() => onPay(item)} 
+                                            className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg border border-zinc-700 transition-colors"
+                                        >
+                                            Pagar
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </Card>
+            </div>
+            <Card>
+                <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                    <CreditCard className="w-5 h-5 text-[#7F00FF]" /> Recorrências no Cartão
+                </h3>
+                <div className="space-y-4">
+                    {cardRecurrences.map(item => (
+                        <div key={item.id} className="flex justify-between items-center">
+                            <div>
+                                <p className="text-sm font-bold text-zinc-300">{item.supplierName}</p>
+                                <p className="text-xs text-zinc-500">{item.description}</p>
+                            </div>
+                            <span className="text-sm font-bold text-white">{formatCurrency(item.amount)}</span>
+                        </div>
+                    ))}
+                </div>
+                <div className="mt-6 p-4 bg-[#7F00FF]/10 rounded-xl border border-[#7F00FF]/30">
+                    <p className="text-xs text-[#7F00FF] text-center">
+                        Estes valores são debitados automaticamente. A conciliação é feita via fatura mensal.
+                    </p>
+                </div>
+            </Card>
+        </div>
+
+        {/* Extrato Consolidado */}
+        <Card>
+            <h3 className="text-lg font-bold text-white mb-6">Extrato Consolidado</h3>
+            <table className="w-full">
+                <thead>
+                    <tr className="text-left text-xs font-bold uppercase text-zinc-500 border-b border-zinc-800">
+                        <th className="pb-4">Data</th>
+                        <th className="pb-4">Descrição</th>
+                        <th className="pb-4">Método</th>
+                        <th className="pb-4">Tipo</th>
+                        <th className="pb-4 text-right">Valor</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/50">
+                    {transactions.map(t => (
+                        <tr key={t.id} className="hover:bg-zinc-800/30">
+                            <td className="py-4 text-sm text-zinc-400">{formatDate(t.date)}</td>
+                            <td className="py-4 text-sm font-medium text-white">{t.description}</td>
+                            <td className="py-4">
+                                <span className={
+                                    t.method === 'Pix' ? 'px-3 py-1 rounded text-xs font-bold bg-[#32BCAD]/20 text-[#32BCAD]' :
+                                    t.method === 'Boleto' ? 'px-3 py-1 rounded text-xs font-bold bg-zinc-700 text-zinc-300' :
+                                    t.method === 'Cartão' ? 'px-3 py-1 rounded text-xs font-bold bg-purple-500/20 text-purple-400' :
+                                    'px-3 py-1 rounded text-xs font-bold bg-zinc-800 text-zinc-400'
+                                }>
+                                    {t.method || 'TED'}
+                                </span>
+                            </td>
+                            <td className="py-4">
+                                <span className={t.type === 'Entrada' ? 'text-xs font-bold text-green-400' : 'text-xs font-bold text-red-400'}>
+                                    {t.type}
+                                </span>
+                            </td>
+                            <td className={`py-4 text-sm text-right font-bold ${t.type === 'Entrada' ? 'text-green-400' : 'text-red-400'}`}>
+                                {t.type === 'Entrada' ? '+' : '-'} {formatCurrency(t.value)}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </Card>
+    </div>
+);
+
 const UinkFinancialDashboard: FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [activeScreen, setActiveScreen] = useState<ScreenId>('dashboard');
@@ -533,6 +670,24 @@ const UinkFinancialDashboard: FC = () => {
     const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
     const [payouts, setPayouts] = useState<Payout[]>([]);
     const [lancamentos, setLancamentos] = useState<Lancamento[]>([]);
+    const [transactions, setTransactions] = useState<TreasuryTransaction[]>([
+        { id: '1', date: '2025-05-01', description: 'Resgate Aplicação', type: 'Saída', value: 3496.71, originAccount: '1', status: 'Concluído', method: 'Pix' },
+        { id: '2', date: '2025-05-02', description: 'Pagamento Fatura Cartão Corp', type: 'Entrada', value: 3570.79, originAccount: '1', status: 'Concluído', method: 'Boleto' },
+        { id: '3', date: '2025-05-03', description: 'Transferência Influencer', type: 'Saída', value: 4120.52, originAccount: '1', status: 'Concluído', method: 'Cartão' },
+        { id: '4', date: '2025-05-04', description: 'Recebimento Apple', type: 'Entrada', value: 480.10, originAccount: '1', status: 'Concluído', method: 'TED' },
+        { id: '5', date: '2025-05-05', description: 'Resgate Aplicação', type: 'Saída', value: 5057.22, originAccount: '1', status: 'Concluído', method: 'Pix' },
+        { id: '6', date: '2025-05-06', description: 'Pagamento Fatura Cartão Corp', type: 'Entrada', value: 3900.11, originAccount: '1', status: 'Concluído', method: 'Boleto' },
+    ]);
+    const [payables, setPayables] = useState<PayableItem[]>([
+        { id: '1', dueDate: '2026-02-01', supplierName: 'Fornecedor A (TI)', description: 'Suporte Técnico Mensal', amount: 1500.00, method: 'Pix', status: 'Aprovado', category: 'TI' },
+        { id: '2', dueDate: '2026-02-01', supplierName: 'Limpeza Corp LTDA', description: 'Limpeza Escritório', amount: 800.00, method: 'Boleto', status: 'Aprovado', category: 'Operacional' },
+        { id: '3', dueDate: '2026-02-02', supplierName: 'Agência Marketing X', description: 'Gestão de Tráfego', amount: 3200.00, method: 'TED', status: 'Aprovado', category: 'Marketing' },
+    ]);
+    const [cardRecurrences, setCardRecurrences] = useState<PayableItem[]>([
+        { id: 'r1', dueDate: 'Todo dia 05', supplierName: 'Amazon Web Services', description: '', amount: 1250.00, method: 'Cartão', status: 'Aprovado', category: 'Infra' },
+        { id: 'r2', dueDate: 'Cartão Safra', supplierName: 'Twilio Inc.', description: '', amount: 500.00, method: 'Cartão', status: 'Aprovado', category: 'Comunicação' },
+        { id: 'r3', dueDate: 'Todo dia 15', supplierName: 'Adobe Creative Cloud', description: '', amount: 350.00, method: 'Cartão', status: 'Aprovado', category: 'Software' },
+    ]);
 
     // Fetch Data on Mount
     // Fetch Data on Mount
@@ -632,6 +787,7 @@ const UinkFinancialDashboard: FC = () => {
             case 'dashboard': return <DashboardScreen vendas={vendas} bankAccounts={bankAccounts} infraCosts={infraCosts} lancamentos={lancamentos} />;
             case 'vendas': return <VendasScreen vendas={vendas} />;
             case 'influenciadores': return <InfluencersScreen influencers={influencers} />;
+            case 'treasury': return <TreasuryScreen bankAccounts={bankAccounts} transactions={transactions} payables={payables} cardRecurrences={cardRecurrences} onPay={(item) => { setModal('addTransaction'); }} setModal={setModal} />;
             case 'payouts': return <PayoutsScreen payouts={payouts} onProcess={handleProcessPayouts} onOpenReview={(p) => { setSelectedPayout(p); setModal('reviewPayout'); }} onViewExtract={(p) => { setSelectedPayout(p); setModal('viewExtract'); }} />;
             default: return <div className="text-zinc-500 text-center py-20">Tela &quot;{activeScreen}&quot; em desenvolvimento.</div>;
         }
